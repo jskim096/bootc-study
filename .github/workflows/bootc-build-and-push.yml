@@ -21,4 +21,4 @@ jobs:
         run: podman login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} docker.io
         
       - name: 이미지 푸시
-        run: podman push my-zabbix-image:latest registry.example.com/my-zabbix-image:latest
+        run: podman push my-zabbix-image:latest docker.io/gag2012/github-zabbix:latest
