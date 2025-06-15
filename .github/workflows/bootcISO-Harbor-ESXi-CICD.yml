@@ -25,7 +25,7 @@ jobs:
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso \
             --output /output/my_dashboard-${ISO_DATE}.iso \
-            my_dashboard:latest
+            localhost/my_dashboard:latest
 
       - name: Harbor 레지스트리 로그인
         run: podman login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} harbor.bootc.com:80
