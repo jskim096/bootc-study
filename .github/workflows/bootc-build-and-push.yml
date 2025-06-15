@@ -1,4 +1,4 @@
-name: Build and Push Zabbix Image
+name: Build and Push bootc ISO to Harbor
 
 on:
   push:
@@ -11,14 +11,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Podman 설치
-        run: sudo dnf install -y podman
+      - name: 컨테이너 이미지 빌드
+        run: podman build -t my_dashboard:latest .
 
-      - name: 이미지 빌드
-        run: podman build -t my-zabbix-image:latest .
+      - name: ISO 파일명에 날짜 및 시간 적용 및 bootc로 ISO 변환
+        run: |
+          export ISO_DATE=$(date +"%Y%m%d%H%M")
+          mkdir -p output
+          sudo podman run --rm -it --privileged \
+            -v ./output:/output \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type iso \
+            --output /output/my_dashboard-${ISO_DATE}.iso \
+            my_dashboard:latest
 
-      - name: 레지스트리 로그인
-        run: podman login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} docker.io
-        
-      - name: 이미지 푸시
-        run: podman push my-zabbix-image:latest docker.io/gag2012/github-zabbix:latest
+      - name: Harbor 레지스트리 로그인
+        run: podman login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} harbor.bootc.com:80
+
+      - name: ISO 파일 push (skopeo 사용)
+        run: |
+          export ISO_DATE=$(date +"%Y%m%d%H%M")
+          sudo dnf install -y skopeo
+          skopeo copy --dest-creds=${{ secrets.REGISTRY_USER }}:${{ secrets.REGISTRY_PASS }} \
+            oci-archive:./output/my_dashboard-${ISO_DATE}.iso \
+            docker://harbor.bootc.com:80/bootc/my_dashboard:${ISO_DATE}
