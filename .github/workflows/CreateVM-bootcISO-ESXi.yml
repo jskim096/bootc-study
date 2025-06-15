@@ -1,0 +1,58 @@
+name: Build ISO and Deploy VM on ESXi
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  ISO_FILENAME: my_dashboard_v1.iso  # ISO 파일명 (변경 가능)
+  VM_NAME: my_dashboard-vm           # VM 이름
+  VM_CPU: 4                          # vCPU 개수
+  VM_MEM: 8                          # 메모리(GB)
+  VM_DISK: 40                        # 디스크(GB)
+  VM_NETWORK: "VM Network"           # 네트워크명
+  VM_GUEST_OS: centos7-64            # 게스트 OS 타입
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 컨테이너 이미지 빌드
+        run: podman build --network=host -t localhost/my_dashboard:latest .
+
+      - name: ISO 파일 빌드 및 output 디렉토리 생성
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged \
+            --network=host \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type iso \
+            --output /output/${ISO_FILENAME} \
+            localhost/my_dashboard:latest
+
+      - name: ESXi 데이터스토어로 ISO 업로드 (SCP)
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            ./output/${ISO_FILENAME}/bootiso/install.iso \
+            ${{ secrets.ESXI_USER }}@${{ secrets.ESXI_HOST }}:/vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME}.iso
+
+      - name: ESXi VM 자동 생성 (python)
+        run: |
+          python3 esxi-vm-create.py \
+            -H ${{ secrets.ESXI_HOST }} \
+            -U ${{ secrets.ESXI_USER }} \
+            -P ${{ secrets.ESXI_PASS }} \
+            -n ${VM_NAME} \
+            -c ${VM_CPU} \
+            -m ${VM_MEM} \
+            -v ${VM_DISK} \
+            -S ${{ secrets.ESXI_DATASTORE }} \
+            --iso /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME}.iso \
+            -N "${VM_NETWORK}" \
+            -g ${VM_GUEST_OS} \
+            --summary
