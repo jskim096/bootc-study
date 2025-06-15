@@ -23,17 +23,17 @@ jobs:
       - name: 컨테이너 이미지 빌드
         run: podman build --network=host -t localhost/my_dashboard:latest .
 
-#      - name: ISO 파일 빌드 및 output 디렉토리 생성
-#        run: |
-#          mkdir -p output
-#          sudo podman run --rm --privileged \
-#            --network=host \
-#            -v ./output:/output \
-#            -v /var/lib/containers/storage:/var/lib/containers/storage \
-#            quay.io/centos-bootc/bootc-image-builder:latest \
-#            --type iso \
-#            --output /output/${ISO_FILENAME} \
-#            localhost/my_dashboard:latest
+      - name: ISO 파일 빌드 및 output 디렉토리 생성
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged \
+            --network=host \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type iso \
+            --output /output/${ISO_FILENAME} \
+            localhost/my_dashboard:latest
 
       - name: ESXi 데이터스토어로 ISO 업로드 (SCP)
         run: |
