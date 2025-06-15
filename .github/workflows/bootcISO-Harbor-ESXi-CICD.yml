@@ -36,5 +36,5 @@ jobs:
         run: |
           sudo dnf install -y skopeo
           skopeo copy --dest-creds=${{ secrets.REGISTRY_USER }}:${{ secrets.REGISTRY_PASS }} \
-            oci-archive:./output/${ISO_FILENAME} \
+            oci-archive:./output/${ISO_DIR}/bootiso/install.iso \
             docker://harbor.bootc.com:80/bootc/my_dashboard:${ISO_FILENAME}
