@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 컨테이너 이미지 빌드
-        run: podman build --dns=8.8.8.8 -t my_dashboard:latest .
+        run: podman build --network=host -t my_dashboard:latest .
 
       - name: ISO 파일명에 날짜 및 시간 적용 및 bootc로 ISO 변환
         run: |
