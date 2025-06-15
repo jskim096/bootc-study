@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  ISO_FILENAME: my_dashboard_v1.iso
+  ISO_FILENAME: my_dashboard_v1.iso  # 디렉토리명(변경 시 여기에만 입력)
 
 jobs:
   build-and-push:
@@ -36,5 +36,27 @@ jobs:
         run: |
           sudo dnf install -y skopeo
           skopeo copy --dest-creds=${{ secrets.REGISTRY_USER }}:${{ secrets.REGISTRY_PASS }} \
-            oci-archive:./output/${ISO_DIR}/bootiso/install.iso \
+            oci-archive:./output/${ISO_FILENAME}/bootiso/install.iso \
             docker://harbor.bootc.com:80/bootc/my_dashboard:${ISO_FILENAME}
+
+      - name: ESXi 데이터스토어로 ISO 업로드 (SCP)
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            ./output/${ISO_FILENAME}/bootiso/install.iso \
+            ${ESXI_USER}@${ESXI_HOST}:/vmfs/volumes/${ESXI_DATASTORE}/${ISO_FILENAME}.iso
+
+      - name: ESXi VM 자동 생성 (python)
+        run: |
+          python3 esxi-vm-create.py \
+            -H ${ESXI_HOST} \
+            -U ${ESXI_USER} \
+            -P ${ESXI_PASS} \
+            -n my_dashboard-vm \
+            -c 4 \
+            -m 8 \
+            -v 40 \
+            -S ${ESXI_DATASTORE} \
+            --iso /vmfs/volumes/${ESXI_DATASTORE}/${ISO_FILENAME}.iso \
+            -N "VM Network" \
+            -g centos7-64 \
+            --summary
