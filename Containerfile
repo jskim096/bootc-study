@@ -1,7 +1,7 @@
 FROM quay.io/centos-bootc/centos-bootc:stream9
 
 # 1. 패키지 설치 (필요시)
-RUN dnf -y install passwd sudo vim openssh-server authselect libpwquality
+RUN dnf -y install passwd sudo vim openssh-server authselect libpwquality at
 
 # 2. 계정 및 wheel 그룹 생성, 비밀번호 설정
 RUN useradd -m -G wheel bootc_admin && \
