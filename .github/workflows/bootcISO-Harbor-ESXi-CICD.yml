@@ -35,5 +35,5 @@ jobs:
           export ISO_DATE=$(date +"%Y%m%d%H%M")
           sudo dnf install -y skopeo
           skopeo copy --dest-creds=${{ secrets.REGISTRY_USER }}:${{ secrets.REGISTRY_PASS }} \
-            oci-archive:./output/my_dashboard-${ISO_DATE}.iso \
+            oci-archive:./output/my_dashboard-202506152247.iso \
             docker://harbor.bootc.com:80/bootc/my_dashboard:${ISO_DATE}
