@@ -4,8 +4,7 @@ FROM quay.io/centos-bootc/centos-bootc:stream9
 RUN dnf -y install passwd sudo vim openssh-server authselect libpwquality
 
 # 2. 계정 및 wheel 그룹 생성, 비밀번호 설정
-RUN groupadd wheel && \
-    useradd -m -G wheel bootc_admin && \
+RUN useradd -m -G wheel bootc_admin && \
     useradd -m bootc_user && \
     echo 'bootc_admin:c!0udc1u6b0oC' | chpasswd && \
     echo 'bootc_user:c!0udc1u6b0oC' | chpasswd && \
