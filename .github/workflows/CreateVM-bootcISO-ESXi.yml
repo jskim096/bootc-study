@@ -34,6 +34,7 @@ jobs:
         run: |
           mkdir -p output
           sudo podman run --rm --privileged \
+            --network=host \
             -v ./output:/output \
             -v /var/lib/containers/storage:/var/lib/containers/storage:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
