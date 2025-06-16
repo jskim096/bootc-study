@@ -7,6 +7,7 @@ on:
 
 env:
   ISO_FILENAME: my_dashboard_v1.iso
+  ISO_DIRNAME : esxi_dir
   VM_NAME: my_dashboard-vm
   VM_CPU: 4
   VM_MEM: 8
@@ -32,13 +33,13 @@ jobs:
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso \
-            --output /output/${ISO_FILENAME} \
+            --output /output/${ISO_DIRNAME} \
             localhost/my_dashboard:latest
 
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
-          mv ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}
+          mv ${ISO_DIRNAME}/install.iso ./${ISO_FILENAME}
           python3 -m http.server 8080 --bind 0.0.0.0 &
           echo $! > ../http_server.pid
 
