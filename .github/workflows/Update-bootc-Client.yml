@@ -1,6 +1,8 @@
 name: Update Bootc Client
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -8,20 +10,21 @@ env:
   IMAGE_VERSION: ${{ github.sha_short }}
 
 jobs:
-  build-and-push:
+  update:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
-      - name: 이미지 빌드 (Containerfile_Update 사용)
-        run: podman build -f Containerfile_Update -t $IMAGE_NAME:$IMAGE_VERSION .
-
-      - name: Harbor 레지스트리 로그인
-        run: podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASS }} harbor.bootc.com
-
-      - name: 태그 설정 및 푸시
+      # 1. 업데이트용 이미지 빌드
+      - name: Build with Containerfile_Update
         run: |
-          podman tag $IMAGE_NAME:$IMAGE_VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:latest
-          podman tag $IMAGE_NAME:$IMAGE_VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION
-          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:latest
+          podman build -f Containerfile_Update \
+            -t harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION .
+
+      # 2. Harbor 푸시
+      - name: Push to Harbor
+        run: |
+          podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} harbor.bootc.com
           podman push harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION
+          podman tag harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:latest
+          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:latest
