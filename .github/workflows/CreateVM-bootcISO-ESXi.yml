@@ -9,8 +9,8 @@ env:
   ISO_FILENAME: my_dashboard_v1.iso
   ISO_DIRNAME : esxi_dir
   VM_NAME: my_dashboard-vm
-  VM_CPU: 4
-  VM_MEM: 8
+  VM_CPU: 2
+  VM_MEM: 4
   VM_DISK: 40
   VM_NETWORK: "VM Network"
   VM_GUEST_OS: centos7-64
