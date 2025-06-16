@@ -38,9 +38,12 @@ jobs:
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
-          ln -sfn ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}.iso
-          python3 -m http.server 8080 --bind 0.0.0.0 --allow-symlinks &
+          cp ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}.iso
+          python3 -m http.server 8080 --bind 0.0.0.0 &
           echo $! > ../http_server.pid
+
+      - name: sshpass 설치
+        run: sudo yum install -y sshpass
 
       - name: ESXi에서 wget으로 ISO 다운로드
         run: |
