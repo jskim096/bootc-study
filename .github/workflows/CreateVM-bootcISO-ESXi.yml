@@ -46,6 +46,9 @@ jobs:
       - name: sshpass 설치
         run: sudo yum install -y sshpass
 
+      - name: Python 종속성 설정
+        run: pip install paramiko
+
       - name: ESXi에서 wget으로 ISO 다운로드
         run: |
           RUNNER_IP=$(hostname -I | awk '{print $1}')
@@ -55,6 +58,7 @@ jobs:
 
       - name: ESXi VM 자동 생성 (python)
         run: |
+          chmod +x esxi-vm-create.py
           python3 esxi-vm-create.py \
             -H ${{ secrets.ESXI_HOST }} \
             -U ${{ secrets.ESXI_USER }} \
