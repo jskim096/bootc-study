@@ -1,11 +1,11 @@
 name: Build ISO and Deploy VM on ESXi
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # 수동 실행 전용
 
 env:
   IMAGE_NAME: my_dashboard
-  IMAGE_VERSION: ${{ github.sha }}
+  IMAGE_VERSION: ${{ github.sha_short }}
   ISO_FILENAME: $IMAGE_NAME-$IMAGE_VERSION.iso
   ISO_DIRNAME: esxi_dir
   VM_NAME: git-vm-test2
@@ -15,29 +15,35 @@ env:
   VM_NETWORK: "VM Network"
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
-      - name: 컨테이너 이미지 빌드
-        run: podman build --network=host -t $IMAGE_NAME:$IMAGE_VERSION .
+      - name: Build Container Image
+        run: |
+          podman build --network=host \
+            -t localhost/$IMAGE_NAME:$IMAGE_VERSION .
+          podman tag localhost/$IMAGE_NAME:$IMAGE_VERSION localhost/$IMAGE_NAME:latest
+          
+      - name: Verify Image Exists
+        run: |
+          podman image inspect localhost/$IMAGE_NAME:$IMAGE_VERSION
+          podman images | grep "$IMAGE_NAME"
 
-      - name: 이미지 태그 확인
-        run: podman images | grep my_dashboard
-
-      - name: ISO 파일 빌드
+      - name: Generate Bootable ISO
         run: |
           mkdir -p output
           sudo podman run --rm --privileged \
             --network=host \
             -v ./output:/output \
-            -v /var/lib/containers/storage:/var/lib/containers/storage:rw \
-            -v /run/containers/storage:/run/containers/storage:rw \
+            -v /var/lib/containers:/var/lib/containers:rw \
+            -v /run/containers:/run/containers:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso \
-            --output /output/${ISO_DIRNAME} \
-            my_dashboard:$IMAGE_VERSION
+            --output /output/$ISO_DIRNAME \
+            localhost/$IMAGE_NAME:$IMAGE_VERSION
+            
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
