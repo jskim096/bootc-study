@@ -23,8 +23,8 @@ jobs:
       - name: 컨테이너 이미지 빌드
         run: podman build --network=host -t $IMAGE_NAME:$IMAGE_VERSION .
 
-      - name: 이미지에 latest 태그 추가
-        run: podman tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest
+      - name: 이미지 태그 확인
+        run: podman images | grep my_dashboard
 
       - name: ISO 파일 빌드
         run: |
@@ -32,12 +32,12 @@ jobs:
           sudo podman run --rm --privileged \
             --network=host \
             -v ./output:/output \
-            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            -v /var/lib/containers/storage:/var/lib/containers/storage:rw \
+            -v /run/containers/storage:/run/containers/storage:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso \
             --output /output/${ISO_DIRNAME} \
-            $IMAGE_NAME:$IMAGE_VERSION
-
+            my_dashboard:$IMAGE_VERSION
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
