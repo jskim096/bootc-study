@@ -6,13 +6,13 @@ on:
   workflow_dispatch:
 
 env:
-  ISO_FILENAME: my_dashboard_v1.iso  # ISO 파일명 (변경 가능)
-  VM_NAME: my_dashboard-vm           # VM 이름
-  VM_CPU: 4                          # vCPU 개수
-  VM_MEM: 8                          # 메모리(GB)
-  VM_DISK: 40                        # 디스크(GB)
-  VM_NETWORK: "VM Network"           # 네트워크명
-  VM_GUEST_OS: centos7-64            # 게스트 OS 타입
+  ISO_FILENAME: my_dashboard_v1.iso
+  VM_NAME: my_dashboard-vm
+  VM_CPU: 4
+  VM_MEM: 8
+  VM_DISK: 40
+  VM_NETWORK: "VM Network"
+  VM_GUEST_OS: centos7-64
 
 jobs:
   build-and-push:
@@ -35,11 +35,23 @@ jobs:
             --output /output/${ISO_FILENAME} \
             localhost/my_dashboard:latest
 
-      - name: ESXi 데이터스토어로 ISO 업로드 (SCP)
+      - name: ISO 파일 HTTP 서버로 제공
         run: |
-          scp -o StrictHostKeyChecking=no \
-            ./output/${ISO_FILENAME}/bootiso/install.iso \
-            ${{ secrets.ESXI_USER }}@${{ secrets.ESXI_HOST }}:/vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME}.iso
+          cd output
+          ln -sfn ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}.iso
+          python3 -m http.server 8080 --bind 0.0.0.0 --allow-symlinks &
+          echo $! > ../http_server.pid
+
+      - name: ESXi에서 wget으로 ISO 다운로드
+        run: |
+          RUNNER_IP=$(hostname -I | awk '{print $1}')
+          sshpass -p "${{ secrets.ESXI_PASS }}" ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.ESXI_USER }}@${{ secrets.ESXI_HOST }} \
+            "wget http://${RUNNER_IP}:8080/${ISO_FILENAME}.iso -O /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME}.iso"
+
+      - name: HTTP 서버 종료
+        run: |
+          kill $(cat http_server.pid)
 
       - name: ESXi VM 자동 생성 (python)
         run: |
