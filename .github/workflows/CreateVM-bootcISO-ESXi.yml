@@ -52,10 +52,6 @@ jobs:
             ${{ secrets.ESXI_USER }}@${{ secrets.ESXI_HOST }} \
             "wget http://${RUNNER_IP}:8080/${ISO_FILENAME} -O /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME}"
 
-      - name: HTTP 서버 종료
-        run: |
-          kill $(cat http_server.pid)
-
       - name: ESXi VM 자동 생성 (python)
         run: |
           python3 esxi-vm-create.py \
