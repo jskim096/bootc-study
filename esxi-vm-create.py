@@ -193,7 +193,7 @@ except:
 #
 MACarg = MAC
 if MAC != "":
-    MACregex = '^([a-fA-F0-9]{2}[:|\-]){5}[a-fA-F0-9]{2}$'
+    MACregex = r'^([a-fA-F0-9]{2}[:|\-]){5}[a-fA-F0-9]{2}$'
     if re.compile(MACregex).search(MAC):
         # Full MAC found. OK
         MAC = MAC.replace("-",":")
@@ -215,7 +215,7 @@ if ISO != "":
     try:
         #  If ISO has no "/", try to find the ISO
         if not re.match('/', ISO):
-            (stdin, stdout, stderr) = ssh.exec_command("find /vmfs/volumes/ -type f -name " + ISO + " -exec sh -c 'echo $1; kill $PPID' sh {} 2>/dev/null \;")
+            (stdin, stdout, stderr) = ssh.exec_command(f"find /vmfs/volumes/ -type f -name {ISO} -exec sh -c 'echo $1; kill $PPID' sh {{}} 2>/dev/null ;")
             type(stdin)
             FoundISOPath = str(stdout.readlines()[0]).strip('\n')
             if isVerbose:
