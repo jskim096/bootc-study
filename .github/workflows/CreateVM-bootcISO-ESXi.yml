@@ -9,8 +9,8 @@ env:
   ISO_DIRNAME: esxi_dir
   VM_NAME: git-vm-test2
   VM_CPU: 2
-  VM_MEM: 4096  # 4GB
-  VM_DISK: 30G
+  VM_MEM: 4
+  VM_DISK: 30
   VM_NETWORK: "VM Network"
 
 jobs:
