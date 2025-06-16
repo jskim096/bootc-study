@@ -38,7 +38,7 @@ jobs:
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
-          cp ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}.iso
+          mv ${ISO_FILENAME}/bootiso/install.iso ${ISO_FILENAME}.iso
           python3 -m http.server 8080 --bind 0.0.0.0 &
           echo $! > ../http_server.pid
 
