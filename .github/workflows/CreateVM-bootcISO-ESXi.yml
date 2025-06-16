@@ -8,7 +8,7 @@ on:
 env:
   ISO_FILENAME: my_dashboard_v1.iso
   ISO_DIRNAME : esxi_dir
-  VM_NAME: git-vm-test
+  VM_NAME: git-vm-test2
   VM_CPU: 2
   VM_MEM: 4
   VM_DISK: 30
@@ -70,4 +70,3 @@ jobs:
             -N "${VM_NETWORK}" \
             -i /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME} \
             -o "svga.autodetect=TRUE" "monitor_phys.host_triggers=TRUE" \
-            --summary
