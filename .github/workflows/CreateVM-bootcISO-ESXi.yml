@@ -39,7 +39,7 @@ jobs:
       - name: ISO 파일 HTTP 서버로 제공
         run: |
           cd output
-          mv ${ISO_DIRNAME}/install.iso ./${ISO_FILENAME}
+          mv ${ISO_DIRNAME}/bootiso/install.iso ./${ISO_FILENAME}
           python3 -m http.server 8080 --bind 0.0.0.0 &
           echo $! > ../http_server.pid
 
