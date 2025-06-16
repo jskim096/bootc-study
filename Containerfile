@@ -3,12 +3,15 @@ FROM quay.io/centos-bootc/centos-bootc:stream9
 # 1. 패키지 설치 (필요시)
 RUN dnf -y install passwd sudo vim openssh-server authselect libpwquality at
 
-# 2. 계정 및 wheel 그룹 생성, 비밀번호 설정
+# 2-1. 계정 및 wheel 그룹 생성, 비밀번호 설정
 RUN useradd -m -G wheel bootc_admin && \
     useradd -m bootc_user && \
     echo 'bootc_admin:c!0udc1u6b0oC' | chpasswd && \
     echo 'bootc_user:c!0udc1u6b0oC' | chpasswd && \
     echo 'root:c!0udc1u6b0oC' | chpasswd
+
+# 2-2. /etc/pam.d/su wheel 주석 제거
+RUN sed -i 's/^#auth\s\+required\s\+pam_wheel.so use_uid/auth required pam_wheel.so use_uid/' /etc/pam.d/su
 
 # 3. /usr/bin/su 및 SUID/SGID 관련 보안 설정
 RUN chgrp wheel /usr/bin/su && \
