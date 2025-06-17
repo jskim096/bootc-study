@@ -5,7 +5,6 @@ on:
 
 env:
   IMAGE_NAME: my_dashboard
-  IMAGE_VERSION: ${{ github.sha_short }}
 
 jobs:
   update:
@@ -13,16 +12,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. 업데이트용 이미지 빌드
-      - name: Build with Containerfile_Update
+      # 1. 버전 생성 (push/수동 구분)
+      - name: Generate Version
+        id: version
+        run: |
+          if [ -n "${{ github.sha }}" ]; then
+            echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          else
+            echo "VERSION=${{ github.run_id }}" >> $GITHUB_ENV
+          fi
+
+      # 2. 이미지 빌드 (Containerfile_Update 사용)
+      - name: Build Image
         run: |
           podman build -f Containerfile_Update \
-            -t harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION .
+            -t harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION .
 
-      # 2. Harbor 푸시
+      # 3. Harbor 푸시
       - name: Push to Harbor
         run: |
           podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} harbor.bootc.com
-          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION
-          podman tag harbor.bootc.com/smarthome/$IMAGE_NAME:$IMAGE_VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:latest
+          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION
+          podman tag harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:latest
           podman push harbor.bootc.com/smarthome/$IMAGE_NAME:latest
