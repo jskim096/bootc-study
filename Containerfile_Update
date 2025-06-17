@@ -42,9 +42,12 @@ RUN authselect select sssd --force && \
     authselect apply-changes
 
 # 8. 패스워드 최대 사용 기간 설정
-RUN sed -i '/^PASS_MAX_DAYS/c\PASS_MAX_DAYS   30' /etc/login.defs
+RUN sed -i '/^PASS_MAX_DAYS/c\PASS_MAX_DAYS   90' /etc/login.defs
 
 # 9. 파일 권한 설정 (passwd, shadow, hosts)
 RUN chown root:root /etc/passwd /etc/shadow /etc/hosts && \
     chmod 644 /etc/passwd /etc/hosts && \
     chmod 400 /etc/shadow
+
+# 10. /etc/hosts 설정
+RUN echo "192.168.10.50 harbor.bootc.com" >> /etc/hosts
