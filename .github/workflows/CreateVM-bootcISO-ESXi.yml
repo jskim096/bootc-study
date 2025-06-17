@@ -65,17 +65,17 @@ jobs:
           ISO_FILENAME="${IMAGE_NAME}-${IMAGE_VERSION}.iso"
           chmod +x esxi-vm-create.py
           python3 esxi-vm-create.py \
-            --host ${{ secrets.ESXI_HOST }} \
-            --user ${{ secrets.ESXI_USER }} \
-            --password "${{ secrets.ESXI_PASS }}" \
-            --name $VM_NAME \
-            --cpu $VM_CPU \
-            --mem $VM_MEM \
-            --disk $VM_DISK \
-            --datastore "${{ secrets.ESXI_DATASTORE }}" \
-            --network "$VM_NETWORK" \
-            --iso /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/$ISO_FILENAME \
-            --options "svga.autodetect=TRUE" "monitor_phys.host_triggers=TRUE"
+            -H ${{ secrets.ESXI_HOST }} \
+            -U ${{ secrets.ESXI_USER }} \
+            -P ${{ secrets.ESXI_PASS }} \
+            -n ${VM_NAME} \
+            -c ${VM_CPU} \
+            -m ${VM_MEM} \
+            -v ${VM_DISK} \
+            -S ${{ secrets.ESXI_DATASTORE }} \
+            -N "${VM_NETWORK}" \
+            -i /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/${ISO_FILENAME} \
+            -o "svga.autodetect=TRUE" "monitor_phys.host_triggers=TRUE" \
 
       # 6. 정리
       - name: Cleanup
