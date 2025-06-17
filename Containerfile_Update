@@ -8,7 +8,7 @@ RUN useradd -m -G wheel bootc_admin && \
     useradd -m bootc_user && \
     echo 'bootc_admin:change123' | chpasswd && \
     echo 'bootc_user:change123' | chpasswd && \
-    echo 'root:change123' | chpasswd
+    echo 'root:change456' | chpasswd
 
 # 2-2. /etc/pam.d/su wheel 주석 제거
 RUN sed -i 's/^#auth\s\+required\s\+pam_wheel.so use_uid/auth required pam_wheel.so use_uid/' /etc/pam.d/su
