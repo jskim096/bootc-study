@@ -32,7 +32,7 @@ jobs:
       # 3. Harbor 푸시
       - name: Push to Harbor
         run: |
-          podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} $HARBOR_REGISTRY
+          podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASS }} $HARBOR_REGISTRY
           podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION
           podman tag $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
           podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
