@@ -6,7 +6,7 @@ on:
 env:
   HARBOR_REGISTRY: harbor.bootc.com:80
   IMAGE_NAME: "my_dashboard"
-  VERSION: ${{ github.sha_short || format('manual-{0}', github.run_id) }}
+  VERSION: ${{ github.sha_short || format('git-{0}', github.run_id) }}
 
 jobs:
   update:
