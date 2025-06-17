@@ -5,7 +5,7 @@ on:
 
 env:
   IMAGE_NAME: my_dashboard
-  HARBOR_REGISTRY: harbor.bootc.com:80  # 포트 명시적 추가
+  HARBOR_REGISTRY: harbor.bootc.com:80
 
 jobs:
   update:
@@ -13,15 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Podman insecure registry 설정
-      - name: Configure Podman
-        run: |
-          sudo mkdir -p /etc/containers
-          if ! grep -q "registries = \['$HARBOR_REGISTRY'\]" /etc/containers/registries.conf; then
-            echo -e "[registries.insecure]\nregistries = ['$HARBOR_REGISTRY']" | sudo tee -a /etc/containers/registries.conf
-          fi
-
-      # 2. 버전 생성
+      # 1. 버전 생성
       - name: Set Version
         id: version
         run: |
@@ -31,13 +23,13 @@ jobs:
             echo "VERSION=manual-${{ github.run_id }}" >> $GITHUB_ENV
           fi
 
-      # 3. 이미지 빌드 (포트 포함 태깅)
+      # 2. 이미지 빌드
       - name: Build Image
         run: |
           podman build -f Containerfile_Update \
             -t $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION .
 
-      # 4. Harbor 푸시 (포트 포함 명령어)
+      # 3. Harbor 푸시
       - name: Push to Harbor
         run: |
           podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} $HARBOR_REGISTRY
