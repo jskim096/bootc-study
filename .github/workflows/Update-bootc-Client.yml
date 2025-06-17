@@ -1,11 +1,12 @@
-name: Update Bootc Client
+name: Update Bootc Client (Multi-Image)
 
 on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: my_dashboard
   HARBOR_REGISTRY: harbor.bootc.com:80
+  IMAGE_NAME: "my_dashboard"
+  VERSION: ${{ github.sha_short || format('manual-{0}', github.run_id) }}
 
 jobs:
   update:
@@ -13,26 +14,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. 버전 생성
-      - name: Set Version
-        id: version
-        run: |
-          if [ -n "${{ github.sha }}" ]; then
-            echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          else
-            echo "VERSION=manual-${{ github.run_id }}" >> $GITHUB_ENV
-          fi
-
-      # 2. 이미지 빌드
+      # 1. 이미지 빌드 (환경변수 IMAGE_NAME 사용)
       - name: Build Image
         run: |
           podman build -f Containerfile_Update \
+            --network=host \
             -t $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION .
+
+      # 2. latest 태그 추가
+      - name: Tag as latest
+        run: |
+          podman tag $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
 
       # 3. Harbor 푸시
       - name: Push to Harbor
         run: |
           podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASS }} $HARBOR_REGISTRY
           podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION
-          podman tag $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
           podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
