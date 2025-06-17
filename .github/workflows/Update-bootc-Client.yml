@@ -5,6 +5,7 @@ on:
 
 env:
   IMAGE_NAME: my_dashboard
+  HARBOR_REGISTRY: harbor.bootc.com:80  # 포트 명시적 추가
 
 jobs:
   update:
@@ -12,26 +13,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. 버전 생성 (push/수동 구분)
-      - name: Generate Version
+      # 1. Podman insecure registry 설정
+      - name: Configure Podman
+        run: |
+          sudo mkdir -p /etc/containers
+          echo -e "[registries.insecure]\nregistries = ['$HARBOR_REGISTRY']" | sudo tee -a /etc/containers/registries.conf
+
+      # 2. 버전 생성
+      - name: Set Version
         id: version
         run: |
           if [ -n "${{ github.sha }}" ]; then
             echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           else
-            echo "VERSION=${{ github.run_id }}" >> $GITHUB_ENV
+            echo "VERSION=manual-${{ github.run_id }}" >> $GITHUB_ENV
           fi
 
-      # 2. 이미지 빌드 (Containerfile_Update 사용)
+      # 3. 이미지 빌드 (포트 포함 태깅)
       - name: Build Image
         run: |
           podman build -f Containerfile_Update \
-            -t harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION .
+            -t $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION .
 
-      # 3. Harbor 푸시
+      # 4. Harbor 푸시 (포트 포함 명령어)
       - name: Push to Harbor
         run: |
-          podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} harbor.bootc.com
-          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION
-          podman tag harbor.bootc.com/smarthome/$IMAGE_NAME:$VERSION harbor.bootc.com/smarthome/$IMAGE_NAME:latest
-          podman push harbor.bootc.com/smarthome/$IMAGE_NAME:latest
+          podman login -u ${{ secrets.HARBOR_USER }} -p ${{ secrets.HARBOR_PASSWORD }} $HARBOR_REGISTRY
+          podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION
+          podman tag $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:$VERSION $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
+          podman push $HARBOR_REGISTRY/smarthome/$IMAGE_NAME:latest
