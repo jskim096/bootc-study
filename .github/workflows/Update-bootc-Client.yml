@@ -17,7 +17,9 @@ jobs:
       - name: Configure Podman
         run: |
           sudo mkdir -p /etc/containers
-          echo -e "[registries.insecure]\nregistries = ['$HARBOR_REGISTRY']" | sudo tee -a /etc/containers/registries.conf
+          if ! grep -q "registries = \['$HARBOR_REGISTRY'\]" /etc/containers/registries.conf; then
+            echo -e "[registries.insecure]\nregistries = ['$HARBOR_REGISTRY']" | sudo tee -a /etc/containers/registries.conf
+          fi
 
       # 2. 버전 생성
       - name: Set Version
