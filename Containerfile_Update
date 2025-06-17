@@ -7,7 +7,7 @@ RUN dnf -y install passwd sudo vim openssh-server authselect libpwquality at
 RUN useradd -m -G wheel bootc_admin && \
     useradd -m bootc_user && \
     echo 'bootc_admin:change123' | chpasswd && \
-    echo 'bootc_user:change123' | chpasswd && \
+    echo 'bootc_user:change1423' | chpasswd && \
     echo 'root:change456' | chpasswd
 
 # 2-2. /etc/pam.d/su wheel 주석 제거
