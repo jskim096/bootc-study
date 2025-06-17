@@ -5,7 +5,7 @@ on: workflow_dispatch
 env:
   IMAGE_NAME: my_dashboard
   IMAGE_VERSION: ${{ github.sha_short || github.run_id }}
-  ISO_FILENAME: $IMAGE_NAME-$IMAGE_VERSION.iso
+  ISO_FILENAME: ${{ env.IMAGE_NAME }}-${{ env.IMAGE_VERSION }}.iso
   ISO_DIRNAME: esxi_dir
   VM_NAME: git-vm-test2
   VM_CPU: 2
@@ -54,7 +54,7 @@ jobs:
       - name: Transfer to ESXi
         run: |
           RUNNER_IP=$(hostname -I | awk '{print $1}')
-          sshpass -p "${{ secrets.ESXI_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+          sshpass -p "${{ secrets.ESXI_PASS }}" ssh -o StrictHostKeyChecking=no \
             ${{ secrets.ESXI_USER }}@${{ secrets.ESXI_HOST }} \
             "wget http://$RUNNER_IP:8080/$ISO_FILENAME -O /vmfs/volumes/${{ secrets.ESXI_DATASTORE }}/$ISO_FILENAME"
 
@@ -65,7 +65,7 @@ jobs:
           python3 esxi-vm-create.py \
             --host ${{ secrets.ESXI_HOST }} \
             --user ${{ secrets.ESXI_USER }} \
-            --password "${{ secrets.ESXI_PASSWORD }}" \
+            --password "${{ secrets.ESXI_PASS }}" \
             --name $VM_NAME \
             --cpu $VM_CPU \
             --mem $VM_MEM \
